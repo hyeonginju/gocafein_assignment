@@ -8,7 +8,7 @@ class MovieModel {
   final String Title;
   final String Year;
   final String Poster;
-  final int imdbID;
+  final String imdbID;
 
   MovieModel({
     required this.Title,

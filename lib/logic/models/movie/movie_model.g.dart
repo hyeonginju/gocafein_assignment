@@ -10,7 +10,7 @@ MovieModel _$MovieModelFromJson(Map<String, dynamic> json) => MovieModel(
       Title: json['Title'] as String,
       Year: json['Year'] as String,
       Poster: json['Poster'] as String,
-      imdbID: (json['imdbID'] as num).toInt(),
+      imdbID: json['imdbID'] as String,
     );
 
 Map<String, dynamic> _$MovieModelToJson(MovieModel instance) =>
