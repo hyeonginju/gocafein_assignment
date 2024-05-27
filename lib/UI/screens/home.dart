@@ -3,6 +3,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_bloc.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_event.dart';
+import 'package:gocafein/logic/blocs/search_movie/search_movie_state.dart';
+import 'package:gocafein/logic/models/movie/movie_model.dart';
 import 'package:gocafein/tools/global_variable.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -11,35 +13,47 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ScrollController _scrollController = ScrollController();
   bool _exposureAppBar = true;
-  late ScrollController _scrollController;
+  int page = 1;
 
   @override
   void initState() {
-    context.read<SearchMovieBloc>().add(IsSearchMovieEvent(
-          keyWord: 'star',
-          page: 1,
-        ));
+    _scrollController.addListener(onScroll);
 
-    _scrollController = ScrollController()
-      ..addListener(() {
-        if (_scrollController.position.userScrollDirection ==
-            ScrollDirection.reverse) {
-          if (_exposureAppBar) {
-            setState(() {
-              _exposureAppBar = false;
-            });
-          }
-        } else if (_scrollController.position.userScrollDirection ==
-            ScrollDirection.forward) {
-          if (!_exposureAppBar) {
-            setState(() {
-              _exposureAppBar = true;
-            });
-          }
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        if (_exposureAppBar) {
+          setState(() {
+            _exposureAppBar = false;
+          });
         }
-      });
+      } else if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        if (!_exposureAppBar) {
+          setState(() {
+            _exposureAppBar = true;
+          });
+        }
+      }
+    });
     super.initState();
+  }
+
+  void onScroll() async {
+    if (_scrollController.position.pixels >=
+            (_scrollController.position.maxScrollExtent * 0.9) &&
+        SearchMovieState is! SearchMovieLoading) {
+      page++;
+      print('PAGE: ${page}');
+      context.read<SearchMovieBloc>().add(
+            IsSearchMovieEvent(
+              keyWord: 'happy',
+              page: page,
+            ),
+          );
+    }
   }
 
   @override
@@ -57,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
     double statusBarHeight = MediaQuery.of(context).padding.top;
     double movieCardWidth = (screenwidth / 2) - 20;
     double movieCardHeight = ((screenwidth / 2) - 20) * 1.5 + 50;
+    double moviePosterHeight = ((screenwidth / 2) - 40) * 1.5;
 
     return Scaffold(
       body: Stack(
@@ -75,25 +90,62 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                     color: GlobalVariable.mainColor,
-                    child: Column(
-                      children: [
-                        GridView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 20,
-                            childAspectRatio: movieCardWidth / movieCardHeight,
-                          ),
-                          itemCount: 10,
-                          itemBuilder: (context, index) {
-                            return MovieCard();
-                          },
-                        ),
-                      ],
+                    child: BlocBuilder(
+                      bloc: context.read<SearchMovieBloc>(),
+                      builder: (context, state) {
+                        if (state is SearchMovieInitial) {
+                          context.read<SearchMovieBloc>().add(
+                                IsSearchMovieEvent(
+                                  keyWord: 'happy',
+                                  page: 1,
+                                ),
+                              );
+                        }
+                        if (state is SearchMovieLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else if (state is SearchMovieSuccess) {
+                          final List<MovieModel> movieList =
+                              state.movieList.cast<MovieModel>();
+
+                          return Column(
+                            children: [
+                              GridView.builder(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 20,
+                                  mainAxisSpacing: 20,
+                                  childAspectRatio:
+                                      movieCardWidth / movieCardHeight,
+                                ),
+                                itemCount: movieList.length,
+                                itemBuilder: (context, index) {
+                                  return MovieCard(
+                                    movie: movieList[index],
+                                    movieCardWidth: movieCardWidth,
+                                    moviePosterHeight: moviePosterHeight,
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        } else if (state is SearchMovieFailure) {
+                          return Center(
+                            child: Text(state.error),
+                          );
+                        } else if (state is SearchMovieError) {
+                          return Center(
+                            child: Text(state.error),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
                     ),
                   ),
                 ),
@@ -150,11 +202,23 @@ class AnimatedAppBar extends StatelessWidget {
   }
 }
 
-class MovieCard extends StatelessWidget {
+class MovieCard extends StatefulWidget {
+  final MovieModel movie;
+  final double movieCardWidth;
+  final double moviePosterHeight;
+
   const MovieCard({
     super.key,
+    required this.movie,
+    required this.movieCardWidth,
+    required this.moviePosterHeight,
   });
 
+  @override
+  State<MovieCard> createState() => _MovieCardState();
+}
+
+class _MovieCardState extends State<MovieCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -165,14 +229,18 @@ class MovieCard extends StatelessWidget {
       child: Column(
         children: [
           Container(
+            width: widget.movieCardWidth,
+            height: widget.moviePosterHeight,
             decoration: BoxDecoration(
               color: GlobalVariable.blackColor,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                'assets/images/logos/movie_poster_sample.png',
+              child: Image.network(
+                widget.movie.Poster,
+                width: widget.movieCardWidth,
+                height: widget.moviePosterHeight,
                 fit: BoxFit.fill,
               ),
             ),
@@ -180,7 +248,7 @@ class MovieCard extends StatelessWidget {
           const SizedBox(height: 5),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text('Movie Title123123123123123',
+            child: Text(widget.movie.Title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
