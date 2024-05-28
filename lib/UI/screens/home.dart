@@ -64,14 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context).size;
-    double screenwidth = mediaQuery.width;
-    double screenheight = mediaQuery.height;
-    double appBarHeight = AppBar().preferredSize.height;
-    double statusBarHeight = MediaQuery.of(context).padding.top;
-    double movieCardWidth = (screenwidth / 2) - 20;
-    double movieCardHeight = ((screenwidth / 2) - 20) * 1.5 + 50;
-    double moviePosterHeight = ((screenwidth / 2) - 40) * 1.5;
+    final mediaQuery = MediaQuery.of(context);
+    final double statusBarHeight = mediaQuery.padding.top;
+    final double screenwidth = mediaQuery.size.width;
+    final double screenheight = mediaQuery.size.height;
+    final double appBarHeight = AppBar().preferredSize.height;
+    final double movieCardWidth = (screenwidth / 2) - 20;
+    final double movieCardHeight = ((screenwidth / 2) - 20) * 1.5 + 50;
+    final double moviePosterHeight = ((screenwidth / 2) - 40) * 1.5;
 
     return Scaffold(
       body: Stack(

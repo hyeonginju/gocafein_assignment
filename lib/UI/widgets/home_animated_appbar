@@ -1,0 +1,43 @@
+class HomeAnimatedAppBar extends StatelessWidget {
+  const HomeAnimatedAppBar({
+    super.key,
+    required bool exposureAppBar,
+  }) : _exposureAppBar = exposureAppBar;
+
+  final bool _exposureAppBar;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedCrossFade(
+      firstChild: AppBar(
+        scrolledUnderElevation: 0,
+        backgroundColor: GlobalVariable.mainColor,
+        leading: const SizedBox(width: 30),
+        title: const Center(
+          child: Text(
+            'Movie Finder',
+            style: TextStyle(
+              color: GlobalVariable.whiteColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            color: GlobalVariable.whiteColor,
+            iconSize: 30,
+            onPressed: () {
+              // Navigate to the Search Screen
+            },
+          ),
+        ],
+      ),
+      secondChild: const SizedBox.shrink(),
+      crossFadeState: _exposureAppBar
+          ? CrossFadeState.showFirst
+          : CrossFadeState.showSecond,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+}
