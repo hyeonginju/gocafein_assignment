@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gocafein/UI/widgets/home_movie_card.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_bloc.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_event.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_state.dart';
@@ -44,12 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void onScroll() async {
     if (_scrollController.position.pixels >=
             (_scrollController.position.maxScrollExtent * 0.9) &&
-        SearchMovieState is! SearchMovieLoading) {
+        context.read<SearchMovieBloc>().state is! SearchMovieLoading) {
       page++;
-      print('PAGE: ${page}');
       context.read<SearchMovieBloc>().add(
             IsSearchMovieEvent(
-              keyWord: 'happy',
+              keyWord: 'start',
               page: page,
             ),
           );
@@ -90,22 +90,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                     color: GlobalVariable.mainColor,
-                    child: BlocBuilder(
-                      bloc: context.read<SearchMovieBloc>(),
+                    child: BlocBuilder<SearchMovieBloc, SearchMovieState>(
                       builder: (context, state) {
                         if (state is SearchMovieInitial) {
                           context.read<SearchMovieBloc>().add(
                                 IsSearchMovieEvent(
-                                  keyWord: 'happy',
+                                  keyWord: 'star',
                                   page: 1,
                                 ),
                               );
-                        }
-                        if (state is SearchMovieLoading) {
                           return const Center(
                             child: CircularProgressIndicator(),
                           );
-                        } else if (state is SearchMovieSuccess) {
+                        }
+                        if (state is SearchMovieSuccess ||
+                            state is SearchMovieLoading) {
                           final List<MovieModel> movieList =
                               state.movieList.cast<MovieModel>();
 
@@ -123,9 +122,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                   childAspectRatio:
                                       movieCardWidth / movieCardHeight,
                                 ),
-                                itemCount: movieList.length,
+                                itemCount: movieList.length +
+                                    (state is SearchMovieLoading ? 1 : 0),
                                 itemBuilder: (context, index) {
-                                  return MovieCard(
+                                  if (index == movieList.length) {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                  return HomeMovieCard(
                                     movie: movieList[index],
                                     movieCardWidth: movieCardWidth,
                                     moviePosterHeight: moviePosterHeight,
@@ -198,71 +203,6 @@ class AnimatedAppBar extends StatelessWidget {
           ? CrossFadeState.showFirst
           : CrossFadeState.showSecond,
       duration: const Duration(milliseconds: 300),
-    );
-  }
-}
-
-class MovieCard extends StatefulWidget {
-  final MovieModel movie;
-  final double movieCardWidth;
-  final double moviePosterHeight;
-
-  const MovieCard({
-    super.key,
-    required this.movie,
-    required this.movieCardWidth,
-    required this.moviePosterHeight,
-  });
-
-  @override
-  State<MovieCard> createState() => _MovieCardState();
-}
-
-class _MovieCardState extends State<MovieCard> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: GlobalVariable.homeCardColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: widget.movieCardWidth,
-            height: widget.moviePosterHeight,
-            decoration: BoxDecoration(
-              color: GlobalVariable.blackColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                widget.movie.Poster,
-                width: widget.movieCardWidth,
-                height: widget.moviePosterHeight,
-                fit: BoxFit.fill,
-              ),
-            ),
-          ),
-          const SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(widget.movie.Title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    color: GlobalVariable.whiteColor,
-                    fontSize: 16,
-                    height: 25 / 16)),
-          ),
-          Text('2024.07.09',
-              style: TextStyle(
-                  color: GlobalVariable.greyColor,
-                  fontSize: 16,
-                  height: 25 / 16)),
-        ],
-      ),
     );
   }
 }

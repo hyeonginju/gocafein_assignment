@@ -1,10 +1,20 @@
-abstract class SearchMovieState {}
+abstract class SearchMovieState {
+  get movieList => null;
+}
 
 class SearchMovieInitial extends SearchMovieState {}
 
-class SearchMovieLoading extends SearchMovieState {}
+class SearchMovieLoading extends SearchMovieState {
+  @override
+  final List<Object> movieList;
+
+  SearchMovieLoading({
+    required this.movieList,
+  });
+}
 
 class SearchMovieSuccess extends SearchMovieState {
+  @override
   final List<Object> movieList;
 
   SearchMovieSuccess({

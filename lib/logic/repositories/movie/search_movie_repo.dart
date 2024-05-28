@@ -9,7 +9,7 @@ class SearchMovieRepo {
 
     final response = await http.get(
       Uri.parse(
-          'https://www.omdbapi.com/?apikey=${Config.openMovieApiKey}&s=$keyWord&$page=1&type=movie'),
+          'https://www.omdbapi.com/?apikey=${Config.openMovieApiKey}&s=$keyWord&page=$page&type=movie'),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -21,10 +21,13 @@ class SearchMovieRepo {
     if (statusCode != 200) {
       datas["errorCode"] = statusCode;
       datas["data"] = responseData["Search"] ?? [];
+      datas["totalResults"] = responseData["totalResults"] ?? "0";
       return datas;
     }
 
     datas["data"] = responseData["Search"] ?? [];
+    datas["totalResults"] = responseData["totalResults"] ?? "0";
+
     return datas;
   }
 }
