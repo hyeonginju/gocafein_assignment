@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gocafein/UI/screens/movie_detail.dart';
+import 'package:gocafein/logic/blocs/movie_detail/movie_detail_bloc.dart';
 import 'package:gocafein/logic/models/movie/movie_model.dart';
 import 'package:gocafein/tools/global_variable.dart';
 
@@ -24,7 +26,9 @@ class _HomeMovieCardState extends State<HomeMovieCard> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MovieDetailScreen(movieId: widget.movie.imdbID),
+        builder: (context) => BlocProvider<MovieDetailBloc>(
+            create: (context) => MovieDetailBloc(),
+            child: MovieDetailScreen(movie: widget.movie)),
       ),
     );
   }
