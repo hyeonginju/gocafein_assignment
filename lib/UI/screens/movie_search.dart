@@ -1,13 +1,14 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gocafein/UI/widgets/search_data_loading.dart';
+import 'package:gocafein/UI/widgets/search_movie_card.dart';
+import 'package:gocafein/UI/widgets/search_no_movie.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_bloc.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_event.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_state.dart';
 import 'package:gocafein/logic/models/movie/movie_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gocafein/tools/global_variable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MovieSearchScreen extends StatefulWidget {
   const MovieSearchScreen({super.key});
@@ -28,37 +29,6 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
     super.initState();
     onFocusKeyBoard();
     loadSearchHistory();
-  }
-
-  void loadSearchHistory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      searchHistory = prefs.getStringList('searchHistory') ?? [];
-    });
-  }
-
-  void saveSearchTerm(String term) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    searchHistory.add(term);
-    if (searchHistory.length > 10) {
-      searchHistory.removeAt(0);
-    }
-    await prefs.setStringList('searchHistory', searchHistory);
-  }
-
-  void deleteSearchTerm(String term) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    searchHistory.remove(term);
-    await prefs.setStringList('searchHistory', searchHistory);
-    setState(() {});
-  }
-
-  void clearSearchHistory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('searchHistory');
-    setState(() {
-      searchHistory = [];
-    });
   }
 
   void tapTitle() {
@@ -94,6 +64,37 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
     });
   }
 
+  void loadSearchHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      searchHistory = prefs.getStringList('searchHistory') ?? [];
+    });
+  }
+
+  void saveSearchTerm(String term) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    searchHistory.add(term);
+    if (searchHistory.length > 10) {
+      searchHistory.removeAt(0);
+    }
+    await prefs.setStringList('searchHistory', searchHistory);
+  }
+
+  void deleteSearchTerm(String term) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    searchHistory.remove(term);
+    await prefs.setStringList('searchHistory', searchHistory);
+    setState(() {});
+  }
+
+  void clearSearchHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('searchHistory');
+    setState(() {
+      searchHistory = [];
+    });
+  }
+
   @override
   void dispose() {
     searchController.dispose();
@@ -111,6 +112,7 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         backgroundColor: GlobalVariable.mainColor,
         leading: Padding(
           padding: const EdgeInsets.fromLTRB(3, 0, 10, 0),
@@ -157,7 +159,9 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
                             child: Text(
                               movieTitle,
                               style: const TextStyle(
-                                  color: GlobalVariable.whiteColor),
+                                  color: GlobalVariable.whiteColor,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -231,40 +235,50 @@ class SearchScreen extends StatelessWidget {
             alignment: Alignment.topRight,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-              child: GestureDetector(
-                onTap: onClearAll,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('최근 검색어',
-                        style: TextStyle(
-                            color: GlobalVariable.whiteColor, fontSize: 16)),
-                    Text(
-                      '전체삭제',
-                      style: TextStyle(
-                        color: GlobalVariable.greyColor,
-                        fontSize: 14,
-                      ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    '최근 검색어',
+                    style: TextStyle(
+                      color: GlobalVariable.whiteColor,
+                      fontSize: 16,
                     ),
-                  ],
-                ),
+                  ),
+                  searchHistory.isNotEmpty
+                      ? GestureDetector(
+                          onTap: onClearAll,
+                          child: const Text(
+                            '전체 삭제',
+                            style: TextStyle(
+                              color: GlobalVariable.greyColor,
+                              fontSize: 14,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ],
               ),
             ),
           ),
           Expanded(
             child: ListView(
-              children: searchHistory
+              children: searchHistory.reversed
                   .map(
                     (term) => ListTile(
                       title: Text(
                         term,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            color: GlobalVariable.whiteColor, fontSize: 18),
+                          color: GlobalVariable.whiteColor,
+                          fontSize: 18,
+                        ),
                       ),
                       trailing: IconButton(
-                        icon: const Icon(Icons.close,
-                            color: GlobalVariable.greyColor),
+                        icon: const Icon(
+                          Icons.close,
+                          color: GlobalVariable.greyColor,
+                        ),
                         onPressed: () => onDelete(term),
                       ),
                       onTap: () => tapSearchIcon(term),
@@ -364,126 +378,54 @@ class _ResultScreenState extends State<ResultScreen> {
                     final List<MovieModel> movieList =
                         state.movieList.cast<MovieModel>();
 
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: movieList.length +
-                          (state is SearchMovieLoading ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == movieList.length) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        return SearchMovieCard(
-                          widget: widget,
-                          movieData: movieList[index],
-                        );
-                      },
+                    return movieList.isEmpty && state is SearchMovieSuccess
+                        ? NoMovieDataScreen(widget: widget)
+                        : movieList.isEmpty
+                            ? SearchDataLoadingScreen(widget: widget)
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: movieList.length +
+                                    (state is SearchMovieLoading ? 1 : 0),
+                                itemBuilder: (context, index) {
+                                  if (index == movieList.length) {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                  return SearchMovieCard(
+                                    widget: widget,
+                                    movieData: movieList[index],
+                                  );
+                                },
+                              );
+                  }
+                  if (state is SearchMovieFailure) {
+                    return Center(
+                      child: Text(
+                        state.error,
+                        style: const TextStyle(
+                          color: GlobalVariable.whiteColor,
+                          fontSize: 16,
+                        ),
+                      ),
+                    );
+                  }
+                  if (state is SearchMovieError) {
+                    return Center(
+                      child: Text(
+                        state.error,
+                        style: const TextStyle(
+                          color: GlobalVariable.whiteColor,
+                          fontSize: 16,
+                        ),
+                      ),
                     );
                   } else {
                     return const SizedBox.shrink();
                   }
                 }),
               ))),
-    );
-  }
-}
-
-class SearchMovieCard extends StatelessWidget {
-  const SearchMovieCard({
-    super.key,
-    required this.widget,
-    required this.movieData,
-  });
-
-  final ResultScreen widget;
-  final MovieModel movieData;
-
-  @override
-  Widget build(BuildContext context) {
-    final String imageUrl = movieData.Poster.isNotEmpty &&
-            (movieData.Poster.startsWith('http') ||
-                movieData.Poster.startsWith('https'))
-        ? movieData.Poster
-        : 'https://via.placeholder.com/300x450.png?text=No+Image';
-
-    return Container(
-      width: widget.screenWidth * 0.3,
-      height: widget.screenWidth * 0.3 * 1.5,
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: GlobalVariable.greyColor,
-            ),
-            height: widget.screenWidth * 0.3 * 1.5,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                imageUrl,
-                width: widget.screenWidth * 0.25,
-                height: widget.screenWidth * 0.3 * 1.5,
-                fit: BoxFit.fill,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'assets/images/logos/no_image.png',
-                    width: widget.screenWidth * 0.25,
-                    height: widget.screenWidth * 0.3 * 1.5,
-                    fit: BoxFit.fill,
-                  );
-                },
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        movieData.Title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: GlobalVariable.whiteColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Text(
-                      movieData.Year,
-                      style: const TextStyle(
-                        color: GlobalVariable.greyColor,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a Wookiee and two droids to save the galaxy from the Empire's world-destroying battle station, while also attempting to rescue Princess Leia from the mysterious Darth ...",
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: GlobalVariable.whiteColor,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
