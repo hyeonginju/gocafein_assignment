@@ -22,7 +22,7 @@ class HomeMovieCard extends StatefulWidget {
 }
 
 class _HomeMovieCardState extends State<HomeMovieCard> {
-  void goDetail() {
+  void goDetailScreen() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -42,7 +42,7 @@ class _HomeMovieCardState extends State<HomeMovieCard> {
         : 'https://via.placeholder.com/300x450.png?text=No+Image';
 
     return GestureDetector(
-      onTap: goDetail,
+      onTap: goDetailScreen,
       child: Container(
         decoration: BoxDecoration(
           color: GlobalVariable.homeCardColor,

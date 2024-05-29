@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gocafein/UI/widgets/home_animated_appbar.dart';
 import 'package:gocafein/UI/widgets/home_movie_card.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_bloc.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_event.dart';
@@ -48,8 +49,8 @@ class _HomeScreenState extends State<HomeScreen> {
         context.read<SearchMovieBloc>().state is! SearchMovieLoading) {
       page++;
       context.read<SearchMovieBloc>().add(
-            IsSearchMovieEvent(
-              keyWord: 'start',
+            SearchMovie(
+              keyWord: 'star',
               page: page,
             ),
           );
@@ -79,7 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(color: GlobalVariable.mainColor),
           Column(
             children: [
-              AnimatedAppBar(exposureAppBar: _exposureAppBar),
+              HomeAnimatedAppBar(
+                exposureAppBar: _exposureAppBar,
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   controller: _scrollController,
@@ -94,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       builder: (context, state) {
                         if (state is SearchMovieInitial) {
                           context.read<SearchMovieBloc>().add(
-                                IsSearchMovieEvent(
+                                SearchMovie(
                                   keyWord: 'star',
                                   page: 1,
                                 ),
@@ -159,50 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class AnimatedAppBar extends StatelessWidget {
-  const AnimatedAppBar({
-    super.key,
-    required bool exposureAppBar,
-  }) : _exposureAppBar = exposureAppBar;
-
-  final bool _exposureAppBar;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedCrossFade(
-      firstChild: AppBar(
-        scrolledUnderElevation: 0,
-        backgroundColor: GlobalVariable.mainColor,
-        leading: const SizedBox(width: 30),
-        title: const Center(
-          child: Text(
-            'Movie Finder',
-            style: TextStyle(
-              color: GlobalVariable.whiteColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            color: GlobalVariable.whiteColor,
-            iconSize: 30,
-            onPressed: () {
-              // Navigate to the Search Screen
-            },
-          ),
-        ],
-      ),
-      secondChild: const SizedBox.shrink(),
-      crossFadeState: _exposureAppBar
-          ? CrossFadeState.showFirst
-          : CrossFadeState.showSecond,
-      duration: const Duration(milliseconds: 300),
     );
   }
 }

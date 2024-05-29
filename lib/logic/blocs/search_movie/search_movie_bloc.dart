@@ -9,7 +9,7 @@ class SearchMovieBloc extends Bloc<SearchMovieEvent, SearchMovieState> {
   String totalResults = '';
 
   SearchMovieBloc() : super(SearchMovieInitial()) {
-    on<IsSearchMovieEvent>((event, emit) async {
+    on<SearchMovie>((event, emit) async {
       try {
         emit(SearchMovieLoading(movieList: movieDataList));
         final responseData = await SearchMovieRepo().getMovieData(
@@ -24,7 +24,6 @@ class SearchMovieBloc extends Bloc<SearchMovieEvent, SearchMovieState> {
 
         Map<String, dynamic> bodyData = {"data": responseData["data"]};
         totalResults = responseData["totalResults"];
-        print('TOTALRESULTS: ${totalResults}');
         List<dynamic> list = await bodyData["data"];
         List<MovieModel> newData =
             list.map((e) => MovieModel.fromJson(e)).toList();

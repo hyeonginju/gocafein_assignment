@@ -1,10 +1,10 @@
 abstract class SearchMovieEvent {}
 
-class IsSearchMovieEvent extends SearchMovieEvent {
+class SearchMovie extends SearchMovieEvent {
   final String keyWord;
   final int page;
 
-  IsSearchMovieEvent({
+  SearchMovie({
     required this.keyWord,
     required this.page,
   });
