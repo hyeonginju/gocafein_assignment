@@ -38,7 +38,7 @@ class _HomeAnimatedAppBarState extends State<HomeAnimatedAppBar> {
           padding: EdgeInsets.only(left: 10),
           child: Center(
             child: Text(
-              'Movie Finder',
+              'goCafein',
               style: TextStyle(
                 color: GlobalVariable.whiteColor,
                 fontWeight: FontWeight.w600,
