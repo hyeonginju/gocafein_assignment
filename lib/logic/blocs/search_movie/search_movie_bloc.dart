@@ -31,7 +31,7 @@ class SearchMovieBloc extends Bloc<SearchMovieEvent, SearchMovieState> {
 
         emit(SearchMovieSuccess(movieList: movieDataList));
       } catch (error) {
-        emit(SearchMovieError('영화 검색 중 오류가 발생했습니다. $error'));
+        emit(SearchMovieError('영화 검색 중 오류가 발생했습니다.'));
       }
     });
   }

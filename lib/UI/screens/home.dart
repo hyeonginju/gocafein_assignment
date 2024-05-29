@@ -144,11 +144,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         } else if (state is SearchMovieFailure) {
                           return Center(
-                            child: Text(state.error),
+                            child: Text(state.error,
+                                style: const TextStyle(
+                                    color: GlobalVariable.whiteColor)),
                           );
                         } else if (state is SearchMovieError) {
                           return Center(
-                            child: Text(state.error),
+                            child: Text(state.error,
+                                style: const TextStyle(
+                                    color: GlobalVariable.whiteColor)),
                           );
                         } else {
                           return const SizedBox.shrink();

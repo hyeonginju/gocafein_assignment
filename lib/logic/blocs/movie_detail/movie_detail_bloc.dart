@@ -35,7 +35,7 @@ class MovieDetailBloc extends Bloc<MovieDetailEvent, MovieDetailState> {
 
         emit(MovieDetailSuccess(detailData: movieDetailData));
       } catch (error) {
-        emit(MovieDetailError('영화 상세정보를 불러오는중 오류가 발생했습니다. $error'));
+        emit(MovieDetailError('영화 상세정보를 불러오는중 오류가 발생했습니다.'));
       }
     });
   }
