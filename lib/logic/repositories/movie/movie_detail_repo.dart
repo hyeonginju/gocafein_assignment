@@ -9,7 +9,7 @@ class MovieDetailRepo {
 
     final response = await http.get(
       Uri.parse(
-          'https://www.omdbapi.com/?apikey=${Config.openMovieApiKey}&i=$imdbID'),
+          'https://www.omdbapi.com/?apikey=${Config.openMovieApiKey}&i=$imdbID&plot=full'),
       headers: {
         'Content-Type': 'application/json',
       },
