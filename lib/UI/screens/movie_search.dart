@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gocafein/UI/widgets/search_data_loading.dart';
@@ -65,19 +68,23 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
   }
 
   void loadSearchHistory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      searchHistory = prefs.getStringList('searchHistory') ?? [];
-    });
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        searchHistory = prefs.getStringList('searchHistory') ?? [];
+      });
+    }
   }
 
   void saveSearchTerm(String term) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    searchHistory.add(term);
-    if (searchHistory.length > 10) {
-      searchHistory.removeAt(0);
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      searchHistory.add(term);
+      if (searchHistory.length > 10) {
+        searchHistory.removeAt(0);
+      }
+      await prefs.setStringList('searchHistory', searchHistory);
     }
-    await prefs.setStringList('searchHistory', searchHistory);
   }
 
   void deleteSearchTerm(String term) async {
@@ -88,11 +95,13 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
   }
 
   void clearSearchHistory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('searchHistory');
-    setState(() {
-      searchHistory = [];
-    });
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('searchHistory');
+      setState(() {
+        searchHistory = [];
+      });
+    }
   }
 
   @override
