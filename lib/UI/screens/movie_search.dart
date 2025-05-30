@@ -11,7 +11,7 @@ import 'package:gocafein/logic/blocs/search_movie/search_movie_event.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_state.dart';
 import 'package:gocafein/logic/models/movie/movie_model.dart';
 import 'package:gocafein/tools/global_variable.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
 
 class MovieSearchScreen extends StatefulWidget {
   const MovieSearchScreen({super.key});
@@ -23,9 +23,9 @@ class MovieSearchScreen extends StatefulWidget {
 class _MovieSearchScreenState extends State<MovieSearchScreen> {
   bool onSearch = true;
   String movieTitle = "";
-  List<String> searchHistory = [];
   TextEditingController searchController = TextEditingController();
   FocusNode searchFocusNode = FocusNode();
+  List<String> searchHistory = [];
 
   @override
   void initState() {
@@ -68,40 +68,40 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
   }
 
   void loadSearchHistory() async {
-    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
+    final box = Hive.box<List>('searchBox');
+    final data = box.get('searchHistory');
+    if (data != null) {
       setState(() {
-        searchHistory = prefs.getStringList('searchHistory') ?? [];
+        searchHistory = List<String>.from(data);
       });
     }
   }
 
   void saveSearchTerm(String term) async {
-    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
+    final box = Hive.box<List>('searchBox');
+    if (!searchHistory.contains(term)) {
       searchHistory.add(term);
       if (searchHistory.length > 10) {
         searchHistory.removeAt(0);
       }
-      await prefs.setStringList('searchHistory', searchHistory);
+      await box.put('searchHistory', searchHistory);
+      setState(() {}); // 리스트 반영
     }
   }
 
   void deleteSearchTerm(String term) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final box = Hive.box<List>('searchBox');
     searchHistory.remove(term);
-    await prefs.setStringList('searchHistory', searchHistory);
+    await box.put('searchHistory', searchHistory);
     setState(() {});
   }
 
   void clearSearchHistory() async {
-    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('searchHistory');
-      setState(() {
-        searchHistory = [];
-      });
-    }
+    final box = Hive.box<List>('searchBox');
+    await box.delete('searchHistory');
+    setState(() {
+      searchHistory = [];
+    });
   }
 
   @override

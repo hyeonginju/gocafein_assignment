@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gocafein/UI/screens/home.dart';
 import 'package:gocafein/logic/blocs/search_movie/search_movie_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox<List>('searchBox'); // 리스트 저장용 박스
+  runApp(const MyApp());
   runApp(const MyApp());
 }
 
